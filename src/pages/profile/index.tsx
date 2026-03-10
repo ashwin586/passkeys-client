@@ -28,7 +28,7 @@ const App = () => {
           name: response?.data?.user?.name,
           email: response?.data?.user?.email,
           createdAt: new Date(response?.data?.user?.createdAt).toLocaleString(
-            "en-IN"
+            "en-IN",
           ),
         });
       } catch (error: unknown) {
@@ -60,24 +60,33 @@ const App = () => {
               </div>
               <div className="user__info">
                 <p className="user__name">{user?.name}</p>
-                <p className="user__desc">
-                  This is the email being used: <strong>{user?.email}</strong>,
-                  and this account was created on{" "}
-                  <strong>{user?.createdAt}</strong>.
+                <p className="text-[1.3rem] text-slate-400">
+                  email:{" "}
+                  <strong className="font-bold text-white">
+                    {user?.email}
+                  </strong>
+                  <br />
+                  created on:{" "}
+                  <strong className="font-bold text-white">
+                    {user?.createdAt}
+                  </strong>
                 </p>
               </div>
             </div>
             <div className="profile__sub__categories">
               <ProfileCategories
                 heading={"Manage Account"}
-                description={"This helps to manage account"}
+                description={""}
                 onClick={() => router.push("/profile/manageaccount")}
               />
               <ProfileCategories
                 heading={"Manage Passwords"}
-                description={"This is to manage the password"}
+                description={""}
                 onClick={() => router.push("/profile/managepasswords")}
               />
+            </div>
+            <div>
+              <button className="action__btn" onClick={() => router.back()}>Go Back</button>
             </div>
           </div>
         )}

@@ -50,7 +50,6 @@ const App = () => {
     }
   };
 
-
   return (
     <>
       <Head>

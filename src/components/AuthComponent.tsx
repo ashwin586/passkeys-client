@@ -14,15 +14,16 @@ const AuthComponent: React.FC<AuthComponentProps> = ({
     formState: { errors },
   } = useForm<authInterface>();
   return (
-    <div className="login__container">
+    <div className="auth__container glossy_container">
       <form
         onSubmit={handleSubmit(submitHandler)}
-        className="login__form__container"
+        className="auth__form__container"
       >
+        <h1 className="text-3xl font-bold">Welcome to PassKeys</h1>
         {mode === "login" ? (
-          <h1 className="auth__heading">Login</h1>
+          <h1 className="text-xl font-bold">Login</h1>
         ) : (
-          <h1 className="auth__heading">Register</h1>
+          <h1 className="text-xl font-bold">Register</h1>
         )}
 
         <TextField
@@ -38,6 +39,29 @@ const AuthComponent: React.FC<AuthComponentProps> = ({
             },
           })}
           autoComplete="off"
+          sx={{
+            mb: 2,
+            "& .MuiFilledInput-root": {
+              backgroundColor: "rgba(255,255,255,0.05)",
+              borderRadius: "8px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            },
+            "& .MuiFilledInput-root:hover": {
+              backgroundColor: "rgba(255,255,255,0.08)",
+            },
+            "& .MuiFilledInput-root:before": {
+              borderBottom: "none !important",
+            },
+            "& .MuiFilledInput-root:after": {
+              borderBottom: "none !important",
+            },
+            "& .MuiInputLabel-root": {
+              color: "#cbd5e1",
+            },
+            "& input": {
+              color: "white",
+            },
+          }}
         />
         {errors.email && <p className="alert__err">{errors.email.message}</p>}
         <TextField
@@ -52,23 +76,57 @@ const AuthComponent: React.FC<AuthComponentProps> = ({
               message: "Password must be at least 8 characters",
             },
           })}
+          sx={{
+            mb: 2,
+            "& .MuiFilledInput-root": {
+              backgroundColor: "rgba(255,255,255,0.05)",
+              borderRadius: "8px",
+              border: "1px solid rgba(255,255,255,0.15)",
+            },
+            "& .MuiFilledInput-root:hover": {
+              backgroundColor: "rgba(255,255,255,0.08)",
+            },
+            "& .MuiFilledInput-root:before": {
+              borderBottom: "none !important",
+            },
+            "& .MuiFilledInput-root:after": {
+              borderBottom: "none !important",
+            },
+            "& .MuiInputLabel-root": {
+              color: "#cbd5e1",
+            },
+            "& input": {
+              color: "white",
+            },
+          }}
         />
-        {errors.password && <p className="alert__err">{errors.password.message}</p>}
+        {errors.password && (
+          <p className="alert__err">{errors.password.message}</p>
+        )}
         {mode === "login" && (
-          <div className="forgotpassword__link">
-            <a href="/forgotpassword">Forgot password?</a>
+          <div className="text-start w-100">
+            <a href="/forgotpassword" className="text-blue-400">
+              Forgot password?
+            </a>
           </div>
         )}
-        <button type="submit">{mode === "login" ? "Login" : "Register"}</button>
+        <button type="submit" className="auth_btn">
+          {mode === "login" ? "Login" : "Register"}
+        </button>
         <div>
           {mode === "login" ? (
             <p>
               Don&apos;t have an account?{" "}
-              <Link href="/auth/register">Register</Link>
+              <Link href="/auth/register" className="text-blue-400">
+                Register
+              </Link>
             </p>
           ) : (
             <p>
-              Already have an account <Link href="/auth/login">Login</Link>
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-blue-400">
+                Login
+              </Link>
             </p>
           )}
         </div>

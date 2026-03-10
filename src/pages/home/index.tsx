@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import {
   APLHABETS,
   NUMBERS,
@@ -11,18 +12,21 @@ import Box from "@mui/material/Box";
 import Slider from "@mui/material/Slider";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
+import LinearProgress from "@mui/material/LinearProgress";
 import Head from "next/head";
 // import { jwtDecode } from "jwt-decode";
 // import { TokenProps } from "@/types/interface";
 
 const App = () => {
-  const [lowerCase, setLowerCase] = useState<boolean>(false);
-  const [upperCase, setUpperCase] = useState<boolean>(true);
-  const [numeric, setNumeric] = useState<boolean>(false);
-  const [specialCharacter, setSpecialCharacter] = useState<boolean>(false);
+  const [options, setOptions] = useState<optionsState>({
+    upperCase: true,
+    lowerCase: false,
+    number: false,
+    specialChar: false,
+  });
   const [password, setPassword] = useState<string>("");
   const [rangeSliderValue, setRangeSliderValue] = useState<number[] | number>(
-    15
+    15,
   );
   const passTextRef = useRef<HTMLInputElement | null>(null);
   const [toast, setToast] = useState<boolean>(false);
@@ -40,12 +44,12 @@ const App = () => {
   }, []);
 
   let allChars: string[] = [];
-  if (lowerCase)
+  if (options.lowerCase)
     allChars = allChars.concat(alphabets.map((c) => c.toLowerCase()));
-  if (upperCase)
+  if (options.upperCase)
     allChars = allChars.concat(alphabets.map((c) => c.toUpperCase()));
-  if (numeric) allChars = allChars.concat(numbers);
-  if (specialCharacter) allChars = allChars.concat(specialChar);
+  if (options.number) allChars = allChars.concat(numbers);
+  if (options.specialChar) allChars = allChars.concat(specialChar);
 
   const generatePassword = () => {
     const length =
@@ -62,40 +66,31 @@ const App = () => {
   };
 
   const handleCheckBox = (option: keyof optionsState) => {
-    const optionsState: optionsState = {
-      upper: upperCase,
-      lower: lowerCase,
-      number: numeric,
-      specialChar: specialCharacter,
+    const newState = {
+      ...options,
+      [option]: !options[option],
     };
 
-    const checkedCount = Object.values(optionsState).filter(Boolean).length;
+    const checkedCount = Object.values(newState).filter(Boolean).length;
 
-    if (checkedCount === 1 && optionsState[option]) return;
-
-    switch (option) {
-      case "upper":
-        setUpperCase(!upperCase);
-        break;
-      case "lower":
-        setLowerCase(!lowerCase);
-        break;
-      case "number":
-        setNumeric(!numeric);
-        break;
-      case "specialChar":
-        setSpecialCharacter(!specialCharacter);
-        break;
-      default:
-        break;
+    if (checkedCount === 0) {
+      return;
     }
+
+    setOptions(newState);
   };
 
   useEffect(() => {
     generatePassword();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lowerCase, upperCase, numeric, specialCharacter, rangeSliderValue]);
+  }, [
+    options.lowerCase,
+    options.upperCase,
+    options.number,
+    options.specialChar,
+    rangeSliderValue,
+  ]);
 
   // useEffect(() => {
   //   try {
@@ -122,6 +117,30 @@ const App = () => {
   };
 
   if (loading) return null;
+
+  const calculateStrength = (password: string) => {
+    let size = 0;
+
+    if (options.lowerCase) size += 26;
+    if (options.upperCase) size += 26;
+    if (options.number) size += 10;
+    if (options.specialChar) size += 32;
+
+    const score = password.length * Math.log2(size);
+
+    if (score < 40) return Number(score); 
+    if (score < 60) return Number(score);
+    if (score < 80) return Number(score);
+    if(score > 100) return 100
+  };
+
+  const strength = calculateStrength(password);
+
+  const getColor = (strength: number) => {
+    if (strength < 40) return "#ef4444";
+    if (strength < 70) return "#f59e0b";
+    return "#22c55e";
+  };
 
   return (
     <React.Fragment>
@@ -158,86 +177,114 @@ const App = () => {
       <div className="main">
         <div className="container">
           <h1 className="heading-1 text">Random Password Generator</h1>
-          <h2 className="text">
-            Create strong and secure passwords to keep your account safe online.
+          <h2 className="text text-2xl">
+            Create strong and secure passwords for your accounts.
           </h2>
-          <div>
-            <div className="input__box__container">
-              <input
-                type="text"
-                name="password"
-                id="password"
-                className="input__box"
-                value={password}
-                readOnly
-                ref={passTextRef}
-              />
+          <div className="password__generator__container glossy_container">
+            <div className="flex items-center">
+              <div className="input__box__container">
+                <input
+                  type="text"
+                  name="password"
+                  id="password"
+                  className="input__box"
+                  value={password}
+                  readOnly
+                  ref={passTextRef}
+                />
+              </div>
               <RefreshIcon
                 fontSize="large"
-                className="refresh__icon"
+                className=" text-white me-4! cursor-pointer"
                 onClick={() => generatePassword()}
               />
+              <ContentCopyIcon
+                fontSize="large"
+                onClick={handleCopyPass}
+                className="text-white cursor-pointer"
+              />
             </div>
-            <button className="copy__btn" onClick={handleCopyPass}>
-              Copy
-            </button>
-          </div>
-          <div className="pass__range__input__container">
-            <h1 className="text">Password length: {rangeSliderValue}</h1>
-            <Box sx={{ width: 300 }}>
-              <Slider
-                defaultValue={15}
-                aria-label="Default"
-                valueLabelDisplay="auto"
-                min={1}
-                max={50}
-                onChange={(_, value) => {
-                  setRangeSliderValue(value);
-                }}
-              />
-            </Box>
-          </div>
-          <div className="check__box__container">
-            <h1 className="text">Characters used:</h1>
-            <div>
-              <input
-                type="checkbox"
-                name="upperCase"
-                id="uppper"
-                checked={upperCase}
-                onChange={() => handleCheckBox("upper")}
-              />
-              <label htmlFor="">ABC</label>
+            <div id="character-sets">
+              <h1 className="text text-left text-xl">Character Sets</h1>
+              <div className="flex justify-between mt-5!">
+                <div className="segmented">
+                  <input
+                    type="checkbox"
+                    name="upperCase"
+                    id="upperCase"
+                    checked={options.upperCase}
+                    onChange={() => handleCheckBox("upperCase")}
+                  />
+                  <label htmlFor="upperCase">ABC</label>
+                </div>
+                <div className="segmented">
+                  <input
+                    type="checkbox"
+                    name="lowerCase"
+                    id="lowerCase"
+                    checked={options.lowerCase}
+                    onChange={() => handleCheckBox("lowerCase")}
+                  />
+                  <label htmlFor="lowerCase">abc</label>
+                </div>
+                <div className="segmented">
+                  <input
+                    type="checkbox"
+                    name="numeric"
+                    id="number"
+                    checked={options.number}
+                    onChange={() => handleCheckBox("number")}
+                  />
+                  <label htmlFor="number">123</label>
+                </div>
+                <div className="segmented">
+                  <input
+                    type="checkbox"
+                    name="specialCharacter"
+                    id="specialChar"
+                    checked={options.specialChar}
+                    onChange={() => handleCheckBox("specialChar")}
+                  />
+                  <label htmlFor="specialChar">!@#</label>
+                </div>
+              </div>
             </div>
-            <div>
-              <input
-                type="checkbox"
-                name="lowerCase"
-                id="lower"
-                checked={lowerCase}
-                onChange={() => handleCheckBox("lower")}
-              />
-              <label htmlFor="">abc</label>
+            <div id="password-length">
+              <h1 className="text text-left text-xl">
+                Length: {""} {rangeSliderValue}
+              </h1>
+              <div className="pass__range__input__container">
+                <Box sx={{ width: 500 }}>
+                  <Slider
+                    defaultValue={15}
+                    aria-label="Default"
+                    valueLabelDisplay="auto"
+                    min={1}
+                    max={50}
+                    onChange={(_, value) => {
+                      setRangeSliderValue(value);
+                    }}
+                  />
+                </Box>
+              </div>
             </div>
-            <div>
-              <input
-                type="checkbox"
-                name="numeric"
-                id="number"
-                checked={numeric}
-                onChange={() => handleCheckBox("number")}
-              />
-              <label htmlFor="">123</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                name="specialCharacter"
-                id="specialChar"
-                checked={specialCharacter}
-                onChange={() => handleCheckBox("specialChar")}
-              />
-              <label htmlFor="">!@#</label>
+            <div id="password-strength-meter" className="">
+              <p className="text text-start text-xl">Password Strength</p>
+              <Box sx={{ width: "100%", mt: 1 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={strength}
+                  sx={{
+                    height: 8,
+                    borderRadius: 5,
+                    backgroundColor: "#1e293b",
+                    "& .MuiLinearProgress-bar": {
+                      borderRadius: 5,
+                      background: `${getColor(strength || 0)}`,
+                    },
+                  }}
+                />
+              </Box>
             </div>
           </div>
         </div>
