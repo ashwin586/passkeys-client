@@ -1,5 +1,4 @@
 @import "tailwindcss";
-/* @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap'); */
 
 * {
   margin: 0;
@@ -18,6 +17,17 @@
   --bg-color-3: #333;
   --border-color-1: #3F4F44;
   --color-1: #DCD7C9;
+  --green-btn: #28a745;
+  --red-btn: #f44336;
+  --blue-btn: #007bff;
+}
+
+@theme{
+  --color-1: #DCD7C9
+  --bg-color-1: #0F172A;
+  --bg-color-2: #f6e9d9;
+  --bg-color-3: #333;
+  --border-color-1: #3F4F44;
   --green-btn: #28a745;
   --red-btn: #f44336;
   --blue-btn: #007bff;
@@ -46,7 +56,7 @@
   background: rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 8px 32px rgba(0, 0, 0, 0.35)l,
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -229,10 +239,7 @@
 /* Profile Component CSS */
 .profile__categories__container {
   min-width: 300px;
-  height: auto;
-  border-radius: 10px;
-  padding: 10px 20px;
-  border: 2px solid var(--bg-color-2);
+  padding: 10px 0px;
   color: var(--bg-color-2);
   cursor: pointer;
 }
@@ -264,28 +271,9 @@
   color: var(--bg-color-2)
 }
 
-.action__btn#edit {
-  background-color: var(--blue-btn);
-}
-
-.action__btn#cancel {
-  background-color: var(--red-btn);
-}
-
 .action__btn#save {
   background-color: var(--green-btn);
 }
-
-/* Manage Passwords */
-.manage__pass__navbar {
-  display: flex;
-  justify-content: space-evenly;
-  margin-top: 2em;
-}
-
-/* .pass__search {
-  background-color: #f44336;
-} */
 
 .pass__btn__sec {
   margin: auto 0;
@@ -293,60 +281,6 @@
 
 .action__btn#add {
   background-color: var(--blue-btn);
-}
-
-.password__card__container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1em;
-  margin-top: 1em;
-  justify-content: flex-start;
-}
-
-/* Password Card Component Css */
-.card__wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border: 2px solid var(--bg-color-2);
-  border-radius: 10px;
-  width: 300px;
-  padding: 10px;
-  gap: 10px;
-}
-
-.card__heading {
-  width: 80%;
-  color: var(--color-1);
-}
-
-.card__action__btns {
-  display: flex;
-  width: 85%;
-  justify-content: end;
-}
-
-.input__wrapper {
-  position: relative;
-  width: 85%;
-}
-
-.copy__icon {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: var(--color-1);
-}
-
-.visibility__icon {
-  position: absolute;
-  right: 35px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: var(--color-1);
 }
 
 .segmented {
@@ -378,6 +312,8 @@
   background: #3b82f6;
   color: white;
 }
+
+
 
 
 /* Media Queries */

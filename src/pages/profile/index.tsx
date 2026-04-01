@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import ProfileCategories from "@/components/ProfileCategories";
 import axios from "@/lib/axios";
 import { useRouter } from "next/router";
 import { AxiosError } from "axios";
 import { useToast } from "@/context/ToastContext";
 import { User } from "@/types/interface";
 import Image from "next/image";
+import LockIcon from "@mui/icons-material/Lock";
+import LogoutIcon from "@mui/icons-material/Logout";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const App = () => {
   const [token, setToken] = useState<string | null>(null);
@@ -27,9 +29,13 @@ const App = () => {
         setUser({
           name: response?.data?.user?.name,
           email: response?.data?.user?.email,
-          createdAt: new Date(response?.data?.user?.createdAt).toLocaleString(
-            "en-IN",
-          ),
+          createdAt: new Date(
+            response?.data?.user?.createdAt,
+          ).toLocaleDateString("en-IN", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
         });
       } catch (error: unknown) {
         if (error instanceof AxiosError && error?.response?.status === 401) {
@@ -43,55 +49,78 @@ const App = () => {
     fetchProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("access-token");
+    router.push("/home");
+  };
+
   return (
-    <>
-      <div className="main">
-        {token && (
-          <div className="profile__main">
-            <div className="account__details">
-              <div className="user__avatar__container">
-                <Image
-                  src="/default_profile_picture.png"
-                  alt="A default profile picture"
-                  width={100}
-                  height={100}
-                  className="user__avatar"
-                />
-              </div>
-              <div className="user__info">
-                <p className="user__name">{user?.name}</p>
-                <p className="text-[1.3rem] text-slate-400">
-                  email:{" "}
-                  <strong className="font-bold text-white">
-                    {user?.email}
-                  </strong>
-                  <br />
-                  created on:{" "}
-                  <strong className="font-bold text-white">
-                    {user?.createdAt}
-                  </strong>
-                </p>
-              </div>
-            </div>
-            <div className="profile__sub__categories">
-              <ProfileCategories
-                heading={"Manage Account"}
-                description={""}
-                onClick={() => router.push("/profile/manageaccount")}
-              />
-              <ProfileCategories
-                heading={"Manage Passwords"}
-                description={""}
-                onClick={() => router.push("/profile/managepasswords")}
-              />
-            </div>
-            <div>
-              <button className="action__btn" onClick={() => router.back()}>Go Back</button>
-            </div>
+    <div className="main">
+      <button
+        onClick={() => router.back()}
+        className="fixed top-4 left-4 flex items-center justify-center w-10 h-10 rounded-[12px]
+             cursor-pointer border border-white/10 bg-white/5 hover:bg-white/10 
+             hover:border-white/20 text-white/60 hover:text-white transition-all duration-150"
+      >
+        <ArrowBackIcon style={{ fontSize: "20px" }} />
+      </button>
+      {token && (
+        <div className="glossy_container w-full max-w-md p-8! flex flex-col items-center gap-6">
+          {/* Avatar */}
+          <div className="relative">
+            <Image
+              src="/default_profile_picture.png"
+              alt="Profile picture"
+              width={90}
+              height={90}
+              className="rounded-full border-2 border-white/15"
+            />
           </div>
-        )}
-      </div>
-    </>
+
+          {/* User Info */}
+          <div className="text-center flex flex-col gap-1">
+            <h1 className="text-2xl font-extrabold capitalize text-1">
+              {user?.name}
+            </h1>
+            <p className="text-sm text-white/50">{user?.email}</p>
+            <p className="text-xs text-white/30">
+              Member since {user?.createdAt}
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-px bg-white/10" />
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 w-full">
+            <button
+              onClick={() => router.push("/profile/managepasswords")}
+              className="flex-1 flex items-center justify-center gap-2 py-3! rounded-[12px]
+                         bg-white/5 border border-white/10 text-white/70 text-sm font-medium
+                         hover:bg-blue-500/15 hover:border-blue-500/30 hover:text-blue-400
+                         transition-all duration-150 cursor-pointer"
+            >
+              <LockIcon style={{ fontSize: "18px" }} />
+              Open Vault
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-[12px]
+                         bg-white/5 border border-white/10 text-white/70 text-sm font-medium
+                         hover:bg-red-500/15 hover:border-red-500/30 hover:text-red-400
+                         transition-all duration-150 cursor-pointer"
+            >
+              <LogoutIcon style={{ fontSize: "18px" }} />
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
