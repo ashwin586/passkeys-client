@@ -76,3 +76,20 @@ export interface UserPasswords {
   handleEditButton?: () => void;
   handleDeleteButton?: () => void;
 }
+
+export interface CSVData {
+  name: string;
+  url: string;
+  username: string;
+  password: string;
+}
+
+export interface PasswordCardProps {
+  id: string;
+  name: string;
+  url: string;
+  userName: string;
+  password: string;
+  handleEditButton: () => void;
+  handleDeleteButton: () => void;
+}

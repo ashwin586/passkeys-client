@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { SubmitHandler } from "react-hook-form";
 import PasswordCard from "@/components/PasswordCard";
 import AddPassword from "@/components/AddPassword";
-import { addPassword, UserPasswords } from "@/types/interface";
+import { addPassword, UserPasswords, CSVData } from "@/types/interface";
 import { AxiosError } from "axios";
 import { ApiError } from "next/dist/server/api-utils";
 import { useToast } from "@/context/ToastContext";
@@ -12,24 +12,22 @@ import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Skeleton from "@mui/material/Skeleton";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import DownloadIcon from "@mui/icons-material/Download";
+import Papa from "papaparse";
 
 const App = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [credentials, setCredentials] = useState<UserPasswords[] | null>(null);
-  const [filteredCredentials, setFilteredCredentials] = useState<
-    UserPasswords[] | null
-  >(null);
-  const [skeletonCount, setSkeletonCount] = useState<number>(1);
   const [selectedCredential, setSelectedCredential] =
     useState<addPassword | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { showToast } = useToast();
 
   useEffect(() => {
     const accessToken = localStorage.getItem("access-token");
-    const saved = localStorage.getItem("vault-count");
-    if (saved) setSkeletonCount(parseInt(saved));
 
     if (!accessToken) {
       router.push("/home");
@@ -41,7 +39,6 @@ const App = () => {
         const response = await axios.get("/profile/managePasswords");
         const userPasswords = response?.data?.passwords;
         setCredentials(userPasswords);
-        setFilteredCredentials(userPasswords);
       } catch (error) {
         const err = error as AxiosError;
         console.log(err);
@@ -51,12 +48,6 @@ const App = () => {
     storedCredentials();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (credentials) {
-      localStorage.setItem("vault-count", String(credentials.length));
-    }
-  }, [credentials]);
 
   const handleClose = () => {
     setOpen(false);
@@ -105,6 +96,8 @@ const App = () => {
     const id = data?.id;
     try {
       const response = await axios.delete(`/profile/managePasswords/${id}`);
+      console.log("status:", response?.status);
+      console.log("data:", response?.data);
       if (response?.status === 200) {
         const updatedCredentials =
           credentials?.filter((cred) => cred?.id !== id) ?? [];
@@ -116,32 +109,62 @@ const App = () => {
     }
   };
 
-  const handleSearch = (text: string) => {
-    if (!text) {
-      setFilteredCredentials(credentials);
+  const filteredCredentials = useMemo(() => {
+    if (!searchQuery) return credentials;
+    return credentials?.filter(
+      (cred) =>
+        cred.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cred.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cred.url.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [credentials, searchQuery]);
+
+  const importCSV = (file: File | null) => {
+    if (!file) {
+      showToast("No file selected", "error");
       return;
     }
-    const filteredSearch = credentials?.filter((cred: UserPasswords) =>
-      cred.name.toLowerCase().includes(text.toLowerCase()),
-    );
-
-    setFilteredCredentials(filteredSearch ?? []);
+    Papa.parse(file, {
+      header: true,
+      complete: async (results) => {
+        const csvData = results.data as CSVData[];
+        const filtered = csvData.filter(
+          (creds) =>
+            creds.name || creds.url || creds.username || creds.password,
+        );
+        try {
+          const response = await axios.post("/profile/importCSV", {
+            csvData: filtered,
+          });
+          if (response.status === 200) {
+            showToast(response.data.message, "success");
+            setCredentials((prev) => [
+              ...(prev ?? []),
+              ...response.data.newData,
+            ]);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      },
+    });
   };
+
+  // const exportCSV = () => {
+  //   const csvData = Papa.unparse(credentials);
+  //   const blob = new Blob([csvData], { type: "text/csv" });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = "credentials.csv";
+  //   a.click();
+  //   URL.revokeObjectURL(url);
+  // };
 
   return (
     <>
       <div className="main block!">
         <div className="h-[inherit] flex flex-col">
-          {/* <div>
-            <button
-              onClick={() => router.back()}
-              className="fixed top-4 left-4 flex items-center justify-center w-10 h-10 rounded-[12px]
-             cursor-pointer border border-white/10 bg-white/5 hover:bg-white/10 
-             hover:border-white/20 text-white/60 hover:text-white transition-all duration-150"
-            >
-              <ArrowBackIcon style={{ fontSize: "20px" }} />
-            </button>
-          </div> */}
           <div className=" flex justify-between gap-4 mt-8! mx-4!">
             <div>
               <button
@@ -164,7 +187,7 @@ const App = () => {
                   placeholder="Search your saved passwords..."
                   className="bg-transparent border-none outline-none text-[#DCD7C9] w-full placeholder:text-white/30"
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleSearch(e.target.value)
+                    setSearchQuery(e.target.value)
                   }
                 />
               </div>
@@ -182,42 +205,70 @@ const App = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <button className="glossy_container text-1 px-5! py-2!">Import CSV</button>
-              <button className="glossy_container text-1 px-5! py-2!">Export CSV</button>
+              <label className="glossy_container text-1 px-5! py-2! cursor-pointer flex items-center gap-2 w-fit">
+                <DownloadIcon style={{ fontSize: "20px" }} />
+                Import CSV
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  onChange={(e) => {
+                    const selectedFile = e.target.files?.[0] || null;
+                    importCSV(selectedFile);
+                  }}
+                />
+              </label>
+              <label className="glossy_container text-1 px-5! py-2! cursor-pointer flex items-center gap-2 w-fit">
+                <FileUploadIcon style={{ fontSize: "20px" }} />
+                Export CSV
+                <input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  // onChange={(e) => {
+                  //   const selectedFile = e.target.files?.[0] || null;
+                  //   importCSV(selectedFile);
+                  // }}
+                />
+              </label>
             </div>
           </div>
           {credentials === null ? (
             // Loading state
-            <div className="flex flex-wrap gap-5 mt-10! justify-center px-6">
-              {[...Array(skeletonCount)].map((i) => (
-                <Skeleton
-                  key={i}
-                  variant="rectangular"
-                  animation="wave"
-                  width={300}
-                  height={220}
-                  sx={{
-                    borderRadius: "20px",
-                    bgcolor: "rgba(255,255,255,0.07)",
-                  }}
-                />
-              ))}
+            <div className="max-w-6xl mx-auto!">
+              <div className="flex flex-wrap gap-5 mt-10! px-6">
+                {[...Array(10)].map((i) => (
+                  <Skeleton
+                    key={i}
+                    variant="rectangular"
+                    animation="wave"
+                    width={300}
+                    height={220}
+                    sx={{
+                      borderRadius: "20px",
+                      bgcolor: "rgba(255,255,255,0.07)",
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           ) : credentials.length > 0 ? (
             // Cards
-            <div className="flex flex-wrap gap-5 mt-10! justify-center px-6">
-              {filteredCredentials?.map((creds: UserPasswords) => (
-                <PasswordCard
-                  key={creds?.id}
-                  id={creds?.id}
-                  name={creds?.name}
-                  url={creds?.url}
-                  userName={creds?.userName}
-                  password={creds?.password}
-                  handleEditButton={() => handleEditButton(creds)}
-                  handleDeleteButton={() => handleDeleteButton(creds)}
-                />
-              ))}
+            <div className="max-w-6xl mx-auto!">
+              <div className="flex flex-wrap gap-5 mt-10!">
+                {filteredCredentials?.map((creds: UserPasswords) => (
+                  <PasswordCard
+                    key={creds?.id}
+                    id={creds?.id}
+                    name={creds?.name}
+                    url={creds?.url}
+                    userName={creds?.userName}
+                    password={creds?.password}
+                    handleEditButton={() => handleEditButton(creds)}
+                    handleDeleteButton={() => handleDeleteButton(creds)}
+                  />
+                ))}
+              </div>
             </div>
           ) : (
             // Empty state
