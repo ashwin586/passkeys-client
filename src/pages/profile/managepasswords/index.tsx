@@ -4,7 +4,6 @@ import PasswordCard from "@/components/PasswordCard";
 import AddPassword from "@/components/AddPassword";
 import { addPassword, UserPasswords, CSVData } from "@/types/interface";
 import { AxiosError } from "axios";
-import { ApiError } from "next/dist/server/api-utils";
 import { useToast } from "@/context/ToastContext";
 import axios from "@/lib/axios";
 import { useRouter } from "next/router";
@@ -15,6 +14,8 @@ import Skeleton from "@mui/material/Skeleton";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import DownloadIcon from "@mui/icons-material/Download";
 import Papa from "papaparse";
+import useProtectedRoute from "@/hooks/useProtectedRoute";
+import Head from "next/head";
 
 const App = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -25,23 +26,18 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { showToast } = useToast();
+  const allowRender = useProtectedRoute();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("access-token");
-
-    if (!accessToken) {
-      router.push("/home");
-      return;
-    }
-
     const storedCredentials = async () => {
       try {
         const response = await axios.get("/profile/managePasswords");
         const userPasswords = response?.data?.passwords;
         setCredentials(userPasswords);
       } catch (error) {
-        const err = error as AxiosError;
-        console.log(err);
+        const err = error as AxiosError<{ message: string }>;
+        const message = err?.response?.data?.message || "Something went wrong";
+        showToast(message, "error");
       }
     };
 
@@ -59,7 +55,7 @@ const App = () => {
     try {
       if (!isEdit) {
         const response = await axios.post("/profile/managePasswords", data);
-        if (response.status === 200) {
+        if (response.status === 201) {
           showToast(response?.data?.message, "success");
           setCredentials((prev) => [...(prev ?? []), response.data.newData]);
         }
@@ -79,8 +75,9 @@ const App = () => {
         }
       }
     } catch (error) {
-      const err = error as AxiosError<ApiError>;
-      console.log(err);
+      const err = error as AxiosError<{ message: string }>;
+      const message = err?.response?.data?.message || "Something went wrong";
+      showToast(message, "error");
     } finally {
       handleClose();
     }
@@ -96,8 +93,6 @@ const App = () => {
     const id = data?.id;
     try {
       const response = await axios.delete(`/profile/managePasswords/${id}`);
-      console.log("status:", response?.status);
-      console.log("data:", response?.data);
       if (response?.status === 200) {
         const updatedCredentials =
           credentials?.filter((cred) => cred?.id !== id) ?? [];
@@ -105,7 +100,9 @@ const App = () => {
         showToast(response?.data?.message, "success");
       }
     } catch (error) {
-      console.log(error);
+      const err = error as AxiosError<{ message: string }>;
+      const message = err?.response?.data?.message || "Something went wrong";
+      showToast(message, "error");
     }
   };
 
@@ -144,25 +141,49 @@ const App = () => {
             ]);
           }
         } catch (error) {
-          console.log(error);
+          const err = error as AxiosError<{ message: string }>;
+          const message =
+            err?.response?.data?.message || "Something went wrong";
+          showToast(message, "error");
         }
       },
     });
   };
 
-  // const exportCSV = () => {
-  //   const csvData = Papa.unparse(credentials);
-  //   const blob = new Blob([csvData], { type: "text/csv" });
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement("a");
-  //   a.href = url;
-  //   a.download = "credentials.csv";
-  //   a.click();
-  //   URL.revokeObjectURL(url);
-  // };
+  const exportCSV = () => {
+    if (!credentials || credentials.length === 0) {
+      showToast("No passwords to export", "error");
+      return;
+    }
+
+    const csvData = Papa.unparse(
+      credentials.map((cred) => ({
+        name: cred.name,
+        url: cred.url,
+        username: cred.userName,
+        password: cred.password,
+      })),
+    );
+
+    const blob = new Blob([csvData], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vault-export.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (!allowRender) return null;
 
   return (
     <>
+      <Head>
+        <title>My Vault — Vault</title>
+        <meta name="description" content="Manage your saved passwords" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <div className="main block!">
         <div className="h-[inherit] flex flex-col">
           <div className=" flex justify-between gap-4 mt-8! mx-4!">
@@ -220,59 +241,48 @@ const App = () => {
               </label>
               <label className="glossy_container text-1 px-5! py-2! cursor-pointer flex items-center gap-2 w-fit">
                 <FileUploadIcon style={{ fontSize: "20px" }} />
-                Export CSV
-                <input
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  // onChange={(e) => {
-                  //   const selectedFile = e.target.files?.[0] || null;
-                  //   importCSV(selectedFile);
-                  // }}
-                />
+                <button className="cursor-pointer" onClick={exportCSV}>
+                  Export CSV
+                </button>
               </label>
             </div>
           </div>
           {credentials === null ? (
             // Loading state
-            <div className="max-w-6xl mx-auto!">
-              <div className="flex flex-wrap gap-5 mt-10! px-6">
-                {[...Array(10)].map((i) => (
-                  <Skeleton
-                    key={i}
-                    variant="rectangular"
-                    animation="wave"
-                    width={300}
-                    height={220}
-                    sx={{
-                      borderRadius: "20px",
-                      bgcolor: "rgba(255,255,255,0.07)",
-                    }}
-                  />
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-10 my-10! px-15!">
+              {[...Array(10)].map((i) => (
+                <Skeleton
+                  key={i}
+                  variant="rectangular"
+                  animation="wave"
+                  width={300}
+                  height={220}
+                  sx={{
+                    borderRadius: "20px",
+                    bgcolor: "rgba(255,255,255,0.07)",
+                  }}
+                />
+              ))}
             </div>
           ) : credentials.length > 0 ? (
             // Cards
-            <div className="max-w-6xl mx-auto!">
-              <div className="flex flex-wrap gap-5 mt-10!">
-                {filteredCredentials?.map((creds: UserPasswords) => (
-                  <PasswordCard
-                    key={creds?.id}
-                    id={creds?.id}
-                    name={creds?.name}
-                    url={creds?.url}
-                    userName={creds?.userName}
-                    password={creds?.password}
-                    handleEditButton={() => handleEditButton(creds)}
-                    handleDeleteButton={() => handleDeleteButton(creds)}
-                  />
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-10 my-10! px-15!">
+              {filteredCredentials?.map((creds: UserPasswords) => (
+                <PasswordCard
+                  key={creds?.id}
+                  id={creds?.id}
+                  name={creds?.name}
+                  url={creds?.url}
+                  userName={creds?.userName}
+                  password={creds?.password}
+                  handleEditButton={() => handleEditButton(creds)}
+                  handleDeleteButton={() => handleDeleteButton(creds)}
+                />
+              ))}
             </div>
           ) : (
             // Empty state
-            <div className="text-center text-white/30 mt-20 text-sm">
+            <div className="text-center text-white/30 mt-20! text-sm">
               No passwords saved yet
             </div>
           )}

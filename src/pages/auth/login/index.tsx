@@ -1,37 +1,17 @@
-import React, { useEffect, useState } from "react";
 import { SubmitHandler } from "react-hook-form";
-import { authInterface, TokenProps } from "@/types/interface";
+import { authInterface } from "@/types/interface";
 import AuthComponent from "@/components/AuthComponent";
 import axios from "@/lib/axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/context/ToastContext";
+import { AxiosError } from "axios";
+import useAuthRedirect from "@/hooks/useAuthRedirect";
 
 const App = () => {
   const router = useRouter();
-  const [allowRender, setAllowRender] = useState(false);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    const token = localStorage.getItem("access-token");
-    if (token) {
-      try {
-        const decoded: TokenProps = jwtDecode(token);
-        const now: number = Date.now() / 1000;
-        if (decoded.exp < now) {
-          localStorage.removeItem("access-token");
-          setAllowRender(true);
-        } else if (router.pathname === "/auth/login") {
-          router.back();
-        }
-      } catch (err) {
-        localStorage.removeItem("access-token");
-        setAllowRender(true);
-        console.log(err);
-      }
-    } else setAllowRender(true);
-  }, [router]);
+  const allowRender = useAuthRedirect();
 
   const onSubmit: SubmitHandler<authInterface> = async (data) => {
     try {
@@ -46,15 +26,17 @@ const App = () => {
         }, 200);
       }
     } catch (error) {
-      console.log(error);
+      const err = error as AxiosError<{ message: string }>;
+      const message = err?.response?.data?.message || "Something went wrong";
+      showToast(message, "error");
     }
   };
 
   return (
     <>
       <Head>
-        <title>Pass Keys | Login</title>
-        <meta name="description" content="Passkeys login page" />
+        <title>Login - Valut</title>
+        <meta name="description" content="Login to your Vault account" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
