@@ -19,7 +19,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({
         onSubmit={handleSubmit(submitHandler)}
         className="auth__form__container"
       >
-        <h1 className="text-3xl font-bold">Welcome to PassKeys</h1>
+        <h1 className="text-3xl font-bold">Welcome to Vault</h1>
         {mode === "login" ? (
           <h1 className="text-xl font-bold">Login</h1>
         ) : (

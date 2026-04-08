@@ -14,6 +14,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import LinearProgress from "@mui/material/LinearProgress";
 import Head from "next/head";
+import Image from "next/image";
 import { isTokenValid } from "@/utils/auth";
 
 const App = () => {
@@ -127,35 +128,45 @@ const App = () => {
     <React.Fragment>
       <Head>
         <title>Vault - Password Generator</title>
-        <meta name="description" content="Generate strong and secure passwords instantly" />
+        <meta
+          name="description"
+          content="Generate strong and secure passwords instantly"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="account__container">
-        {isLoggedIn ? (
-          <span>
-            <Link href={"/profile"} className="auth__link">
-              Account
-            </Link>
-          </span>
-        ) : (
-          <>
-            <span>
-              {" "}
-              <Link className="auth__link" href={"/auth/login"}>
-                Login
-              </Link>
-            </span>{" "}
-            /{" "}
-            <span>
-              <Link className="auth__link" href={"/auth/register"}>
-                Register
-              </Link>
-            </span>
-          </>
-        )}
-      </div>
+
       <div className="main">
+        <div className="absolute top-1 left-0 w-full flex justify-between items-center px-10! pt-5!">
+          <div className="cursor-pointer flex items-center gap-2">
+            <Image src="/vault.svg" alt="Vault" width={28} height={28}/>
+            <span className="font-bold text-3xl text-white">Vault</span>
+          </div>
+          <div>
+            {isLoggedIn ? (
+              <span>
+                <Link href={"/profile"} className="auth__link">
+                  Account
+                </Link>
+              </span>
+            ) : (
+              <>
+                <span>
+                  {" "}
+                  <Link className="auth__link" href={"/auth/login"}>
+                    Login
+                  </Link>
+                </span>{" "}
+                /{" "}
+                <span>
+                  <Link className="auth__link" href={"/auth/register"}>
+                    Register
+                  </Link>
+                </span>
+              </>
+            )}
+          </div>
+        </div>
         <div className="container">
           <h1 className="heading-1 text">Random Password Generator</h1>
           <h2 className="text text-2xl">

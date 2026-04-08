@@ -16,6 +16,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import Papa from "papaparse";
 import useProtectedRoute from "@/hooks/useProtectedRoute";
 import Head from "next/head";
+import Image from "next/image";
 
 const App = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -196,6 +197,13 @@ const App = () => {
               >
                 <ArrowBackIcon style={{ fontSize: "20px" }} />
               </button>
+              <div
+                className="fixed top-4 left-20 cursor-pointer flex items-center gap-2"
+                onClick={() => router.push("/home")}
+              >
+                <Image src="/vault.svg" alt="Vault" width={28} height={28} />
+                <span className="font-bold text-3xl text-white">Vault</span>
+              </div>
             </div>
             <div className="flex gap-4">
               <div className="flex items-center w-[480px] gap-3 px-4! py-3! rounded-[14px] glossy_container">

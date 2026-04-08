@@ -73,6 +73,13 @@ const App = () => {
         >
           <ArrowBackIcon style={{ fontSize: "20px" }} />
         </button>
+        <div
+          className="fixed top-4 left-20 cursor-pointer flex items-center gap-2"
+          onClick={() => router.push("/home")}
+        >
+          <Image src="/vault.svg" alt="Vault" width={28} height={28} />
+          <span className="font-bold text-3xl text-white">Vault</span>
+        </div>
         {token && (
           <div className="glossy_container w-full max-w-md p-8! flex flex-col items-center gap-6">
             {/* Avatar */}

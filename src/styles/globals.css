@@ -185,13 +185,6 @@
   margin-top: -15px;
 }
 
-/* Auth Links */
-.account__container {
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
-}
-
 .auth__link {
   text-decoration: none;
   color: var(--bg-color-2);
