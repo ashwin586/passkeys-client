@@ -1,40 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Vault — Password Manager Client
+
+A modern, secure password manager web application built with Next.js. Generate strong passwords, store credentials safely, and manage your digital vault with a clean glassmorphic UI.
+
+![Vault](./public/screenshot.png)
+
+## Features
+
+- 🔐 **Password Generator** — Generate strong passwords with customizable character sets and length
+- 🗄️ **Password Vault** — Securely store, edit, and delete credentials
+- 🔍 **Search** — Instantly search saved passwords by name, username, or URL
+- 📊 **Password Strength** — Visual strength indicator (Weak / Fair / Strong) on every saved entry
+- 📥 **CSV Import** — Import passwords from Chrome, Bitwarden, or any standard password manager export
+- 📤 **CSV Export** — Export your vault as a CSV file
+- 🔒 **JWT Authentication** — Secure login and registration with token expiry
+- 🎨 **Glassmorphic UI** — Dark theme with glassmorphic design throughout
+
+## Tech Stack
+
+- **Framework** — Next.js 15 (Page Router)
+- **Language** — TypeScript
+- **Styling** — Tailwind CSS v4, Material UI
+- **HTTP Client** — Axios
+- **CSV Parsing** — PapaParse
+- **Authentication** — JWT (via backend)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- A running instance of the [Vault server](https://github.com/ashwin586/vault-server)
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/ashwin586/vault-client.git
+cd vault-client
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Create a `.env` file in the root:
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+### Running the App
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Development
+npm run dev
 
-## Learn More
+# Production build
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+vault-client/
+├── public/               # Static assets (SVG logo, images)
+├── src/
+│   ├── components/       # Reusable UI components
+│   ├── context/          # React context providers (Toast)
+│   ├── hooks/            # Custom React hooks (useAuthRedirect, useProtectedRoute)
+│   ├── lib/              # Axios instance and config
+│   ├── pages/            # Next.js pages (page router)
+│   │   ├── auth/         # Login and Register
+│   │   ├── home/         # Password Generator
+│   │   ├── profile/      # Profile and Manage Passwords
+│   │   ├── _app.tsx      # App wrapper
+│   │   ├── _document.tsx # Document wrapper
+│   │   └── index.tsx     # Entry point
+│   ├── styles/           # Global CSS
+│   ├── types/            # TypeScript interfaces
+│   └── utils/            # Helper functions (crypto, passwordStrength, auth)
+├── .env                  # Environment variables
+├── next.config.ts        # Next.js configuration
+└── tsconfig.json         # TypeScript configuration
+```
 
-## Deploy on Vercel
+## Related
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+- [Vault Server](https://github.com/ashwin586/vault-server) — Express.js REST API

@@ -65,20 +65,22 @@ const App = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="main">
-        <button
-          onClick={() => router.back()}
-          className="fixed top-4 left-4 flex items-center justify-center w-10 h-10 rounded-[12px]
+        <div className="mt-8!">
+          <button
+            onClick={() => router.back()}
+            className="fixed top-4 left-4 flex items-center justify-center w-10 h-10 rounded-[12px]
              cursor-pointer border border-white/10 bg-white/5 hover:bg-white/10 
              hover:border-white/20 text-white/60 hover:text-white transition-all duration-150"
-        >
-          <ArrowBackIcon style={{ fontSize: "20px" }} />
-        </button>
-        <div
-          className="fixed top-4 left-20 cursor-pointer flex items-center gap-2"
-          onClick={() => router.push("/home")}
-        >
-          <Image src="/vault.svg" alt="Vault" width={28} height={28} />
-          <span className="font-bold text-3xl text-white">Vault</span>
+          >
+            <ArrowBackIcon style={{ fontSize: "20px" }} />
+          </button>
+          <div
+            className="fixed top-4 left-20 cursor-pointer flex items-center gap-2"
+            onClick={() => router.push("/home")}
+          >
+            <Image src="/vault.svg" alt="Vault" width={28} height={28} />
+            <span className="font-bold text-3xl text-white">Vault</span>
+          </div>
         </div>
         {token && (
           <div className="glossy_container w-full max-w-md p-8! flex flex-col items-center gap-6">

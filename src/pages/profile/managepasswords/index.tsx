@@ -198,7 +198,7 @@ const App = () => {
                 <ArrowBackIcon style={{ fontSize: "20px" }} />
               </button>
               <div
-                className="fixed top-4 left-20 cursor-pointer flex items-center gap-2"
+                className="fixed top-8 left-20 cursor-pointer flex items-center gap-2"
                 onClick={() => router.push("/home")}
               >
                 <Image src="/vault.svg" alt="Vault" width={28} height={28} />
