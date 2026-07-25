@@ -68,7 +68,11 @@ const App = () => {
     let newPassword: string = "";
 
     for (let i = 0; i < length; i++) {
-      const randomValue = Math.floor(Math.random() * allChars.length);
+      const randomBuffer = new Uint32Array(1);
+      crypto.getRandomValues(randomBuffer);
+      const randomValue = Math.floor(
+        (randomBuffer[0] / 0x100000000) * allChars.length,
+      );
       newPassword += allChars[randomValue];
     }
     setPassword(newPassword);
